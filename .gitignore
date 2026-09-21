@@ -18,3 +18,5 @@ out/
 # Logs
 *.log
 npm-debug.log*
+
+# build output of tools/build-download-page.mjs is committed on purpose (docs/download.html)
