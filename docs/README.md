@@ -97,7 +97,8 @@ and until then, nothing in your codebase has to change to accommodate it.
 
 | Doc | What it covers |
 |---|---|
-| [`full-discussion.md`](./full-discussion.md) | **Complete session record** — every topic, finding, answer, and correction, with sources |
+| [`conversation-record.md`](./conversation-record.md) | **Complete turn-by-turn transcript** — every question as asked, every answer in full, all sources, all corrections |
+| [`full-discussion.md`](./full-discussion.md) | Structured digest — same material organised by theme, with a source list |
 | [`monetization-model.md`](./monetization-model.md) | The three models, MCM, why the money path matters, Nepal tax facts |
 | [`entry-phase-ads-playbook.md`](./entry-phase-ads-playbook.md) | **AFP Transparent** — the sanctioned version of your model; the 0% rev-share decision |
 | [`ad-infrastructure-plan.md`](./ad-infrastructure-plan.md) | Nepal market reality, three-layer architecture, Revive/Prebid, build vs adopt |
