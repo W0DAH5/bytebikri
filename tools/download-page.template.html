@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bytebikri — Download the full session record</title>
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f7f8fa; --panel-2:#eef1f5; --ink:#14181f; --muted:#5b6675;
+    --line:#dfe4ea; --accent:#c2410c; --accent-2:#9a3412; --code-bg:#1b1f27; --code-ink:#e6edf3;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  .bar{
+    position:sticky; top:0; z-index:20; background:rgba(255,255,255,.92);
+    backdrop-filter:saturate(180%) blur(10px); border-bottom:1px solid var(--line);
+  }
+  .bar-in{max-width:960px; margin:0 auto; padding:10px 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .bar .brand{font-weight:700; letter-spacing:-.01em; margin-right:auto}
+  .bar .brand span{color:var(--muted); font-weight:500}
+  .wrap{max-width:960px; margin:0 auto; padding:28px 20px 96px}
+
+  h1{font-size:2rem; line-height:1.2; letter-spacing:-.02em; margin:0 0 6px}
+  .lede{color:var(--muted); margin:0 0 22px; max-width:70ch}
+
+  .grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); margin:0 0 24px}
+  .card{border:1px solid var(--line); border-radius:var(--radius); padding:16px 16px 14px; background:var(--panel)}
+  .card h2{font-size:1rem; margin:0 0 4px; letter-spacing:-.01em}
+  .card p{margin:0 0 12px; color:var(--muted); font-size:.9rem}
+  .meta{display:flex; gap:6px; flex-wrap:wrap; margin:0 0 12px}
+  .chip{font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);
+        background:var(--panel-2); border-radius:999px; padding:2px 9px}
+  .row{display:flex; gap:8px; flex-wrap:wrap}
+
+  button,.btn{
+    font:inherit; font-weight:600; font-size:.9rem; cursor:pointer;
+    border-radius:8px; padding:9px 15px; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:7px; text-decoration:none;
+  }
+  .primary{background:var(--accent); color:#fff}
+  .primary:hover{background:var(--accent-2)}
+  .ghost{background:#fff; color:var(--ink); border-color:var(--line)}
+  .ghost:hover{background:var(--panel-2)}
+  .tiny{font-size:.82rem; padding:7px 12px}
+
+  .tabs{display:flex; gap:6px; border-bottom:1px solid var(--line); margin:6px 0 0}
+  .tab{background:none; border:none; border-bottom:2px solid transparent; border-radius:0;
+       padding:10px 14px; color:var(--muted); font-weight:600}
+  .tab[aria-selected="true"]{color:var(--accent); border-bottom-color:var(--accent)}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin:14px 0}
+
+  .doc{border:1px solid var(--line); border-radius:var(--radius); padding:8px 26px 30px; overflow:hidden}
+  .doc :is(h1,h2,h3,h4){letter-spacing:-.015em; line-height:1.25}
+  .doc h1{font-size:1.75rem; margin:26px 0 10px; padding-top:8px}
+  .doc h2{font-size:1.3rem; margin:30px 0 10px; padding-top:14px; border-top:1px solid var(--line)}
+  .doc h3{font-size:1.05rem; margin:24px 0 8px}
+  .doc h4{font-size:.95rem; margin:20px 0 6px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+  .doc p{margin:0 0 12px}
+  .doc ul,.doc ol{margin:0 0 14px; padding-left:24px}
+  .doc li{margin:0 0 5px}
+  .doc a{color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(194,65,12,.3)}
+  .doc a:hover{border-bottom-color:var(--accent)}
+  .doc code{background:var(--panel-2); border-radius:4px; padding:1.5px 5px;
+            font:0.86em ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .doc pre{background:var(--code-bg); color:var(--code-ink); border-radius:8px; padding:14px 16px;
+           overflow-x:auto; margin:0 0 16px; font-size:.84rem; line-height:1.5}
+  .doc pre code{background:none; padding:0; color:inherit; font-size:inherit}
+  .doc blockquote{margin:0 0 16px; padding:2px 0 2px 16px; border-left:3px solid var(--line); color:var(--muted)}
+  .doc hr{border:none; border-top:1px solid var(--line); margin:28px 0}
+  .doc blockquote table,.doc table{border-collapse:collapse; width:100%; margin:0 0 16px; font-size:.88rem; display:block; overflow-x:auto}
+  .doc th,.doc td{border:1px solid var(--line); padding:7px 11px; text-align:left; vertical-align:top}
+  .doc th{background:var(--panel); font-weight:600; white-space:nowrap}
+  .doc img{max-width:100%}
+
+  #raw{display:none; white-space:pre; overflow-x:auto; font:0.82rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+        background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px}
+
+  .note{background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:11px 14px;
+        font-size:.86rem; color:#713f12; margin:0 0 22px}
+  .toast{position:fixed; left:50%; bottom:26px; transform:translate(-50%,16px); background:var(--ink); color:#fff;
+         padding:10px 18px; border-radius:999px; font-size:.88rem; font-weight:600; opacity:0;
+         pointer-events:none; transition:opacity .18s, transform .18s; z-index:50}
+  .toast.on{opacity:1; transform:translate(-50%,0)}
+  footer{margin-top:40px; color:var(--muted); font-size:.84rem; border-top:1px solid var(--line); padding-top:18px}
+
+  @media (max-width:640px){
+    .doc{padding:6px 14px 22px}
+    h1{font-size:1.55rem}
+    .bar-in{padding:9px 14px}
+  }
+  @media print{ .bar,.toolbar,.tabs,.grid,.note,.toast{display:none!important} .doc{border:none;padding:0} }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="brand">bytebikri <span>· session archive</span></div>
+    <button class="primary tiny" id="top-download">Download .md</button>
+    <button class="ghost tiny" id="top-copy">Copy</button>
+    <button class="ghost tiny" id="top-print">Print / PDF</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <h1 id="page-title">Complete session record</h1>
+  <p class="lede" id="page-lede">
+    Everything discussed in this working session — every question as asked, every answer in full, every figure
+    and source. Self-contained: download the Markdown, copy it, or print it.
+  </p>
+
+  <div class="note">
+    <strong>Download not starting?</strong> Some embedded viewers block downloads. Click
+    <em>Print / PDF</em> as a fallback, right-click the button and choose <em>Save link as…</em>, or open this
+    page in a normal browser tab.
+  </div>
+
+  <div class="grid" id="cards"></div>
+
+  <div class="tabs" id="tabs" role="tablist"></div>
+
+  <div class="toolbar">
+    <div class="meta" id="chips"></div>
+    <div class="row">
+      <button class="ghost tiny" id="toggle-view">Show raw Markdown</button>
+    </div>
+  </div>
+
+  <div class="doc" id="preview"></div>
+  <pre id="raw"></pre>
+
+  <footer id="foot"></footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CONFIG = /*__CONFIG__*/;
+
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtBytes(n){return n < 1024 ? n + ' B' : (n/1024).toFixed(1) + ' KB';}
+function fmtNum(n){return n.toLocaleString('en-US');}
+
+/* ---------- minimal markdown renderer ---------- */
+function inline(s){
+  s = esc(s);
+  const stash = [];
+  const keep = (html) => { stash.push(html); return '\u0000' + (stash.length - 1) + '\u0000'; };
+
+  s = s.replace(/`([^`]+)`/g, (m, p1) => keep('<code>' + p1 + '</code>'));
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,
+        (m, t, u) => keep('<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>'));
+  s = s.replace(/(^|[\s(])((?:https?:\/\/)[^\s<>()]+[^\s<>().,;:])/g,
+        (m, pre, u) => pre + keep('<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>'));
+
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+
+  /* Placeholders nest — `code` inside a [link](url), or inside **bold** — because
+     each construct is stashed from text that may already hold an earlier one.
+     Restore to a fixed point so nothing is left unresolved in the output. */
+  for (let pass = 0; pass < 10; pass++) {
+    if (!/\u0000\d+\u0000/.test(s)) break;
+    s = s.replace(/\u0000(\d+)\u0000/g, (m, n) => (stash[+n] === undefined ? m : stash[+n]));
+  }
+  return s;
+}
+
+function slug(s){
+  return s.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-').slice(0, 60);
+}
+
+function splitRow(line){
+  let t = line.trim();
+  if (t.startsWith('|')) t = t.slice(1);
+  if (t.endsWith('|')) t = t.slice(0, -1);
+  return t.split('|').map(c => c.trim());
+}
+
+function renderMarkdown(md){
+  const lines = md.replace(/\r\n/g, '\n').split('\n');
+  const out = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    /* fenced code */
+    if (/^\s*```/.test(line)) {
+      const lang = line.trim().slice(3).trim();
+      const buf = [];
+      i++;
+      while (i < lines.length && !/^\s*```/.test(lines[i])) { buf.push(lines[i]); i++; }
+      i++;
+      out.push('<pre><code' + (lang ? ' class="language-' + esc(lang) + '"' : '') + '>'
+               + esc(buf.join('\n')) + '</code></pre>');
+      continue;
+    }
+
+    /* table */
+    if (/^\s*\|/.test(line) && i + 1 < lines.length && /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(lines[i + 1])) {
+      const head = splitRow(line);
+      i += 2;
+      const body = [];
+      while (i < lines.length && /^\s*\|/.test(lines[i])) { body.push(splitRow(lines[i])); i++; }
+      let t = '<table><thead><tr>';
+      head.forEach(h => { t += '<th>' + inline(h) + '</th>'; });
+      t += '</tr></thead><tbody>';
+      body.forEach(r => {
+        t += '<tr>';
+        for (let c = 0; c < head.length; c++) t += '<td>' + inline(r[c] === undefined ? '' : r[c]) + '</td>';
+        t += '</tr>';
+      });
+      t += '</tbody></table>';
+      out.push(t);
+      continue;
+    }
+
+    /* heading */
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      const lvl = h[1].length;
+      const txt = h[2].trim();
+      out.push('<h' + lvl + ' id="' + slug(txt) + '">' + inline(txt) + '</h' + lvl + '>');
+      i++; continue;
+    }
+
+    /* horizontal rule */
+    if (/^\s*([-*_])\s*\1\s*\1[\s\-*_]*$/.test(line)) { out.push('<hr>'); i++; continue; }
+
+    /* blockquote */
+    if (/^\s*>/.test(line)) {
+      const buf = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) { buf.push(lines[i].replace(/^\s*>\s?/, '')); i++; }
+      out.push('<blockquote>' + renderMarkdown(buf.join('\n')) + '</blockquote>');
+      continue;
+    }
+
+    /* lists */
+    if (/^\s*([-*+])\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*([-*+])\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*[-*+]\s+/, '')); i++;
+      }
+      out.push('<ul>' + items.map(x => '<li>' + inline(x) + '</li>').join('') + '</ul>');
+      continue;
+    }
+    if (/^\s*\d+[.)]\s+/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\s*\d+[.)]\s+/, '')); i++;
+      }
+      out.push('<ol>' + items.map(x => '<li>' + inline(x) + '</li>').join('') + '</ol>');
+      continue;
+    }
+
+    /* blank */
+    if (!line.trim()) { i++; continue; }
+
+    /* paragraph */
+    const buf = [];
+    while (i < lines.length && lines[i].trim() &&
+           !/^\s*(#{1,6}\s|>|```|\||[-*+]\s|\d+[.)]\s)/.test(lines[i]) &&
+           !/^\s*([-*_])\s*\1\s*\1[\s\-*_]*$/.test(lines[i])) {
+      buf.push(lines[i].trim()); i++;
+    }
+    if (buf.length) out.push('<p>' + inline(buf.join(' ')) + '</p>');
+    else i++;
+  }
+  return out.join('\n');
+}
+
+/* ---------- state ---------- */
+let current = CONFIG.docs[0].id;
+let showingRaw = false;
+
+function active(){ return CONFIG.docs.find(d => d.id === current); }
+
+function blobUrl(doc){
+  return URL.createObjectURL(new Blob([doc.markdown], {type:'text/markdown;charset=utf-8'}));
+}
+
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), 1900);
+}
+
+function downloadDoc(doc, ev){
+  if (ev) ev.preventDefault();
+  try {
+    const a = document.createElement('a');
+    a.href = blobUrl(doc);
+    a.download = doc.filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Downloading ' + doc.filename);
+  } catch (e) {
+    toast('Download blocked — use Print / PDF');
+  }
+}
+
+async function copyDoc(doc){
+  try {
+    await navigator.clipboard.writeText(doc.markdown);
+    toast('Markdown copied (' + fmtBytes(doc.bytes) + ')');
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = doc.markdown;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('Markdown copied'); }
+    catch (e2) { toast('Copy blocked — use Download'); }
+    ta.remove();
+  }
+}
+
+function render(){
+  const doc = active();
+
+  $('#tabs').innerHTML = CONFIG.docs.map(d =>
+    '<button class="tab" role="tab" data-id="' + d.id + '" aria-selected="' + (d.id === current) + '">'
+    + esc(d.label) + '</button>').join('');
+
+  $('#chips').innerHTML =
+      '<span class="chip">' + fmtNum(doc.lines) + ' lines</span>'
+    + '<span class="chip">' + fmtBytes(doc.bytes) + '</span>'
+    + '<span class="chip">' + fmtNum(doc.words) + ' words</span>'
+    + '<span class="chip">' + esc(doc.filename) + '</span>';
+
+  $('#preview').innerHTML = renderMarkdown(doc.markdown);
+  $('#raw').textContent = doc.markdown;
+  $('#preview').style.display = showingRaw ? 'none' : '';
+  $('#raw').style.display = showingRaw ? 'block' : 'none';
+  $('#toggle-view').textContent = showingRaw ? 'Show formatted view' : 'Show raw Markdown';
+  $('#page-title').textContent = doc.label;
+  $('#page-lede').textContent = doc.blurb;
+
+  document.querySelectorAll('#tabs .tab').forEach(b => {
+    b.addEventListener('click', () => { current = b.dataset.id; render(); });
+  });
+}
+
+/* ---------- build UI ---------- */
+$('#cards').innerHTML = CONFIG.docs.map((d, n) =>
+  '<div class="card">'
+  + '<h2>' + esc(d.label) + '</h2>'
+  + '<p>' + esc(d.blurb) + '</p>'
+  + '<div class="meta"><span class="chip">' + fmtNum(d.lines) + ' lines</span>'
+  + '<span class="chip">' + fmtBytes(d.bytes) + '</span></div>'
+  + '<div class="row">'
+  + '<button class="primary" data-dl="' + d.id + '">Download .md</button>'
+  + '<button class="ghost" data-cp="' + d.id + '">Copy</button>'
+  + (n === 0 ? '' : '')
+  + '</div></div>').join('');
+
+CONFIG.docs.forEach(d => {
+  const dl = document.querySelector('[data-dl="' + d.id + '"]');
+  if (dl) dl.addEventListener('click', (e) => downloadDoc(d, e));
+  const cp = document.querySelector('[data-cp="' + d.id + '"]');
+  if (cp) cp.addEventListener('click', () => copyDoc(d));
+});
+
+$('#top-download').addEventListener('click', (e) => downloadDoc(active(), e));
+$('#top-copy').addEventListener('click', () => copyDoc(active()));
+$('#top-print').addEventListener('click', () => window.print());
+$('#toggle-view').addEventListener('click', () => { showingRaw = !showingRaw; render(); });
+
+$('#foot').innerHTML =
+    'Source: <a href="' + CONFIG.repo + '" target="_blank" rel="noopener">' + esc(CONFIG.repo) + '</a>'
+  + ' · branch <code>' + esc(CONFIG.branch) + '</code>'
+  + ' · <a href="' + CONFIG.pr + '" target="_blank" rel="noopener">pull request #1</a>'
+  + '<br>Page generated ' + esc(CONFIG.built) + '. Both downloads are plain Markdown — open them in any editor.';
+
+render();
+</script>
+</body>
+</html>
